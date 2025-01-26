@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLM Token System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        header {
+            background: #4CAF50;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+        .container {
+            padding: 2rem;
+        }
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>MLM Token System</h1>
+        <p>Transparent, Decentralized, and Rewarding</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>Connect Wallet</h2>
+            <button class="btn" onclick="connectWallet()">Connect MetaMask</button>
+            <p id="wallet-address">Not Connected</p>
+        </div>
+
+        <div class="card">
+            <h2>Stake Tokens</h2>
+            <input type="number" id="stake-amount" placeholder="Enter amount to stake">
+            <button class="btn" onclick="stakeTokens()">Stake</button>
+            <p id="stake-status"></p>
+        </div>
+
+        <div class="card">
+            <h2>Claim Rewards</h2>
+            <button class="btn" onclick="claimRewards()">Claim</button>
+            <p id="reward-status"></p>
+        </div>
+
+        <div class="card">
+            <h2>Referral Program</h2>
+            <input type="text" id="referrer-address" placeholder="Enter referrer address">
+            <button class="btn" onclick="registerReferral()">Register Referral</button>
+            <p id="referral-status"></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script>
+        let web3;
+        let contract;
+
+        const contractAddress = "YOUR_CONTRACT_ADDRESS"; // Replace with deployed contract address
+        const contractABI = []; // Add your contract ABI here
+
+        async function connectWallet() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                try {
+                    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                    document.getElementById('wallet-address').innerText = `Connected: ${accounts[0]}`;
+                } catch (error) {
+                    console.error("User rejected wallet connection");
+                }
+            } else {
+                alert('MetaMask is not installed');
+            }
+        }
+
+        async function stakeTokens() {
+            const amount = document.getElementById('stake-amount').value;
+            if (!contract) contract = new web3.eth.Contract(contractABI, contractAddress);
+
+            try {
+                const accounts = await web3.eth.getAccounts();
+                await contract.methods.stake(web3.utils.toWei(amount, 'ether'), "0x0").send({ from: accounts[0] });
+                document.getElementById('stake-status').innerText = 'Stake successful!';
+            } catch (error) {
+                document.getElementById('stake-status').innerText = `Error: ${error.message}`;
+            }
+        }
+
+        async function claimRewards() {
+            if (!contract) contract = new web3.eth.Contract(contractABI, contractAddress);
+
+            try {
+                const accounts = await web3.eth.getAccounts();
+                await contract.methods.claimRewards().send({ from: accounts[0] });
+                document.getElementById('reward-status').innerText = 'Rewards claimed successfully!';
+            } catch (error) {
+                document.getElementById('reward-status').innerText = `Error: ${error.message}`;
+            }
+        }
+
+        async function registerReferral() {
+            const referrer = document.getElementById('referrer-address').value;
+            if (!contract) contract = new web3.eth.Contract(contractABI, contractAddress);
+
+            try {
+                const accounts = await web3.eth.getAccounts();
+                await contract.methods.stake(0, referrer).send({ from: accounts[0] });
+                document.getElementById('referral-status').innerText = 'Referral registered successfully!';
+            } catch (error) {
+                document.getElementById('referral-status').innerText = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
